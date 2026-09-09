@@ -1,4 +1,4 @@
-# Vaultbox
+# The Well
 
 A Next.js app for uploading **text and audio files** into **folders**. Files live in
 Supabase Storage, folder structure and metadata live in Supabase Postgres.

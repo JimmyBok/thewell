@@ -1,5 +1,5 @@
 -- ---------------------------------------------------------------------------
--- Vaultbox schema
+-- The Well schema
 -- Run this once in the Supabase SQL editor (Dashboard -> SQL -> New query).
 -- ---------------------------------------------------------------------------
 

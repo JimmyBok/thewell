@@ -5,7 +5,7 @@ import { SearchBox } from '@/components/SearchBox';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Vaultbox',
+  title: 'The Well',
   description: 'Upload text and audio files into folders.',
 };
 
@@ -19,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-4 px-5 py-3">
             <Link href="/" className="text-base font-semibold tracking-tight">
-              Vaultbox
+              The Well
             </Link>
             <div className="ml-auto w-full sm:w-72">
               <SearchBox />
