@@ -23,6 +23,7 @@ create index if not exists folders_parent_idx on public.folders (parent_id);
 
 -- Files ---------------------------------------------------------------------
 -- folder_id = null means the file sits at the root.
+-- uploaded_by is optional: null means the uploader did not give a name.
 create table if not exists public.files (
   id            uuid primary key default gen_random_uuid(),
   folder_id     uuid references public.folders (id) on delete cascade,
@@ -31,8 +32,29 @@ create table if not exists public.files (
   mime_type     text not null default 'application/octet-stream',
   size_bytes    bigint not null default 0,
   kind          text not null check (kind in ('text', 'audio')),
+  uploaded_by   text,
   created_at    timestamptz not null default now()
 );
+
+-- Added after the first release. Re-running this file upgrades a database that
+-- was created before uploaded_by existed; rows already there keep a null.
+alter table public.files add column if not exists uploaded_by text;
+
+-- Applied separately so the create-table and the alter paths end up identical.
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conrelid = 'public.files'::regclass
+      and conname = 'files_uploaded_by_length'
+  ) then
+    alter table public.files
+      add constraint files_uploaded_by_length
+      check (uploaded_by is null or char_length(uploaded_by) between 1 and 80);
+  end if;
+end;
+$$;
 
 create index if not exists files_folder_idx on public.files (folder_id);
 create index if not exists files_name_idx on public.files (lower(name));

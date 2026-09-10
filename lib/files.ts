@@ -46,6 +46,18 @@ export function extensionOf(fileName: string): string {
 }
 
 /**
+ * Split a name into its readable stem and extension so the two can be styled
+ * apart in a heading. Keeps the original casing, unlike `extensionOf`, and
+ * returns an empty extension for dotfiles and names that have none.
+ */
+export function splitFileName(fileName: string): { stem: string; ext: string } {
+  const ext = extensionOf(fileName);
+  if (!ext) return { stem: fileName, ext: '' };
+  const dot = fileName.length - ext.length - 1;
+  return { stem: fileName.slice(0, dot), ext: fileName.slice(dot + 1) };
+}
+
+/**
  * Decide whether an upload is text or audio. The browser's reported MIME type
  * wins; the extension is the fallback, because some browsers send an empty or
  * generic type for .md, .m4a and friends.
@@ -76,6 +88,22 @@ export function sanitizeFileName(fileName: string): string {
     .replace(/\s+/g, ' ')
     .trim();
   return cleaned.slice(0, 180) || 'untitled';
+}
+
+export const MAX_UPLOADER_NAME = 80; // keep in sync with files_uploaded_by_length
+
+/**
+ * Tidy the optional "uploaded by" name. Unlike `sanitizeFileName` this keeps
+ * accents and punctuation, since it is a person's name rather than a storage
+ * key — it only strips invisible characters, collapses runs of whitespace and
+ * caps the length. Returns null when nothing usable is left.
+ */
+export function sanitizeUploaderName(value: string): string | null {
+  const cleaned = value
+    .replace(/[\p{Cc}\p{Cf}]/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return cleaned ? cleaned.slice(0, MAX_UPLOADER_NAME).trim() : null;
 }
 
 export function formatBytes(bytes: number): string {

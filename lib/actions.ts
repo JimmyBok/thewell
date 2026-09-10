@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
 
 import { BUCKET, supabaseAdmin } from '@/lib/supabase';
-import { MAX_FILE_BYTES, classify, sanitizeFileName } from '@/lib/files';
+import { MAX_FILE_BYTES, classify, sanitizeFileName, sanitizeUploaderName } from '@/lib/files';
 
 export interface ActionResult {
   ok: boolean;
@@ -145,6 +145,7 @@ export async function uploadFiles(
   formData: FormData,
 ): Promise<ActionResult> {
   const folderId = asFolderId(formData.get('folderId'));
+  const uploadedBy = sanitizeUploaderName(String(formData.get('uploadedBy') ?? ''));
   const uploads = formData.getAll('files').filter((entry): entry is File => entry instanceof File);
 
   const candidates = uploads.filter((file) => file.size > 0);
@@ -186,6 +187,7 @@ export async function uploadFiles(
       mime_type: contentType,
       size_bytes: file.size,
       kind,
+      uploaded_by: uploadedBy,
     });
 
     if (rowError) {

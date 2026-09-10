@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useState } from 'react';
 
 import { deleteFile, renameFile, type ActionResult } from '@/lib/actions';
-import { formatBytes, formatDate } from '@/lib/files';
+import { formatBytes, formatDate, splitFileName } from '@/lib/files';
 import type { FileRow } from '@/lib/database.types';
 
 function TextPreview({ fileId }: { fileId: string }) {
@@ -44,7 +44,7 @@ function TextPreview({ fileId }: { fileId: string }) {
     <div>
       <pre
         className="max-h-80 overflow-auto rounded-lg p-3 text-xs leading-relaxed"
-        style={{ background: 'var(--bg)', border: '1px solid var(--border)', whiteSpace: 'pre-wrap' }}
+        style={{ background: 'var(--surface)', border: '1px solid var(--border)', whiteSpace: 'pre-wrap' }}
       >
         {state.text}
       </pre>
@@ -72,6 +72,7 @@ export function FileCard({ file, location }: { file: FileRow; location?: string 
   }, [renameState]);
 
   const error = renameState?.error ?? deleteState?.error;
+  const { stem, ext } = splitFileName(file.name);
 
   return (
     <li className="surface rounded-xl px-4 py-3">
@@ -97,6 +98,7 @@ export function FileCard({ file, location }: { file: FileRow; location?: string 
               <p className="truncate text-sm font-medium">{file.name}</p>
               <p className="text-xs muted">
                 {formatBytes(file.size_bytes)} · {formatDate(file.created_at)}
+                {file.uploaded_by ? ` · by ${file.uploaded_by}` : ''}
                 {location ? ` · in ${location}` : ''}
               </p>
             </>
@@ -134,12 +136,39 @@ export function FileCard({ file, location }: { file: FileRow; location?: string 
       </div>
 
       {open ? (
-        <div className="mt-3">
-          {file.kind === 'audio' ? (
-            <audio className="w-full" controls preload="metadata" src={`/api/files/${file.id}/content`} />
-          ) : (
-            <TextPreview fileId={file.id} />
-          )}
+        <div className="file-stage mt-4">
+          <div className="file-stage-head">
+            <span aria-hidden className="file-stage-glyph">
+              {file.kind === 'audio' ? '♪' : '¶'}
+            </span>
+
+            <div className="min-w-0">
+              <p className="file-stage-eyebrow">
+                {file.kind === 'audio' ? 'Now playing' : 'Now reading'}
+              </p>
+              <h3 className="file-stage-title">
+                {stem}
+                {ext ? <span className="file-stage-ext">.{ext}</span> : null}
+              </h3>
+              {file.uploaded_by ? (
+                <p className="file-stage-byline">
+                  Uploaded by <span className="file-stage-author">{file.uploaded_by}</span>
+                </p>
+              ) : null}
+              <p className="mt-1.5 text-xs muted">
+                {formatBytes(file.size_bytes)} · {formatDate(file.created_at)}
+                {location ? ` · in ${location}` : ''}
+              </p>
+            </div>
+          </div>
+
+          <div className="file-stage-body">
+            {file.kind === 'audio' ? (
+              <audio className="w-full" controls preload="metadata" src={`/api/files/${file.id}/content`} />
+            ) : (
+              <TextPreview fileId={file.id} />
+            )}
+          </div>
         </div>
       ) : null}
 

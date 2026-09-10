@@ -1,9 +1,12 @@
 'use client';
 
-import { useActionState, useEffect, useRef, useState } from 'react';
+import { useActionState, useEffect, useId, useRef, useState } from 'react';
 
 import { uploadFiles, type ActionResult } from '@/lib/actions';
-import { ACCEPT_ATTRIBUTE, formatBytes } from '@/lib/files';
+import { ACCEPT_ATTRIBUTE, MAX_UPLOADER_NAME, formatBytes } from '@/lib/files';
+
+/** Remembered so the same person doesn't retype their name on every upload. */
+const NAME_STORAGE_KEY = 'thewell:uploader-name';
 
 export function Uploader({ folderId }: { folderId: string | null }) {
   const [state, action, pending] = useActionState<ActionResult | undefined, FormData>(
@@ -13,12 +16,35 @@ export function Uploader({ folderId }: { folderId: string | null }) {
 
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const nameFieldId = useId();
   const [queued, setQueued] = useState<File[]>([]);
   const [dragging, setDragging] = useState(false);
+  const [uploaderName, setUploaderName] = useState('');
+
+  // Read after mount, not during render, so the server and client markup match.
+  useEffect(() => {
+    try {
+      setUploaderName(window.localStorage.getItem(NAME_STORAGE_KEY) ?? '');
+    } catch {
+      // Private browsing and blocked storage: the field just starts empty.
+    }
+  }, []);
+
+  function rememberName(value: string) {
+    setUploaderName(value);
+    try {
+      if (value.trim()) window.localStorage.setItem(NAME_STORAGE_KEY, value);
+      else window.localStorage.removeItem(NAME_STORAGE_KEY);
+    } catch {
+      // Not being able to remember it is not worth failing the upload over.
+    }
+  }
 
   useEffect(() => {
     if (state?.ok) {
       setQueued([]);
+      // Clears the file input; the name field is controlled, so it survives
+      // and stays filled in for the next upload.
       formRef.current?.reset();
     }
   }, [state]);
@@ -64,6 +90,24 @@ export function Uploader({ folderId }: { folderId: string | null }) {
           className="sr-only"
           onChange={(event) => setQueued(Array.from(event.target.files ?? []))}
         />
+
+        <div className="mx-auto mt-5 max-w-xs text-left">
+          <label htmlFor={nameFieldId} className="block text-xs font-medium">
+            Your name <span className="muted">— optional</span>
+          </label>
+          <input
+            id={nameFieldId}
+            className="input mt-1.5"
+            name="uploadedBy"
+            type="text"
+            autoComplete="name"
+            maxLength={MAX_UPLOADER_NAME}
+            placeholder="Who is uploading these?"
+            value={uploaderName}
+            onChange={(event) => rememberName(event.target.value)}
+            disabled={pending}
+          />
+        </div>
 
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
           <button

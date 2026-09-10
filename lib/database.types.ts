@@ -22,6 +22,8 @@ export type FileRow = {
   mime_type: string;
   size_bytes: number;
   kind: FileKind;
+  /** Optional name the uploader attached to the file. */
+  uploaded_by: string | null;
   created_at: string;
 };
 
@@ -37,7 +39,9 @@ export type Database = {
       };
       files: {
         Row: FileRow;
-        Insert: Partial<Pick<FileRow, 'id' | 'created_at' | 'mime_type' | 'size_bytes'>> &
+        Insert: Partial<
+          Pick<FileRow, 'id' | 'created_at' | 'mime_type' | 'size_bytes' | 'uploaded_by'>
+        > &
           Pick<FileRow, 'folder_id' | 'name' | 'storage_path' | 'kind'>;
         Update: Partial<FileRow>;
         Relationships: [];

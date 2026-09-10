@@ -8,6 +8,7 @@ Supabase Storage, folder structure and metadata live in Supabase Postgres.
 - Inline audio player and inline text preview — no download round-trip to look at something
 - Rename and delete for both folders and files (deleting a folder cleans up its objects in storage)
 - Search across file names
+- Optional “your name” field on upload, remembered between uploads and shown as a byline
 
 ## Setup
 
@@ -20,10 +21,12 @@ npm install
 ### 2. Create the Supabase project
 
 Create a project at [supabase.com](https://supabase.com), then open **SQL Editor → New query**,
-paste the contents of [`supabase/schema.sql`](supabase/schema.sql), and run it. That creates:
+paste the contents of [`supabase/schema.sql`](supabase/schema.sql), and run it. The file is
+safe to re-run, so an existing database picks up later additions such as `uploaded_by`.
+That creates:
 
 - `public.folders` — `id`, `name`, `parent_id`, `created_at`
-- `public.files` — `id`, `folder_id`, `name`, `storage_path`, `mime_type`, `size_bytes`, `kind`, `created_at`
+- `public.files` — `id`, `folder_id`, `name`, `storage_path`, `mime_type`, `size_bytes`, `kind`, `uploaded_by`, `created_at`
 - a trigger that stops a folder being moved inside itself
 - the private `uploads` storage bucket, capped at 50 MB per object
 

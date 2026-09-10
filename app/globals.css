@@ -83,4 +83,57 @@ body {
   .muted {
     color: var(--muted);
   }
+
+  /* The panel a file opens into: a recessed stage inside the file card. */
+  .file-stage {
+    @apply overflow-hidden rounded-xl;
+    border: 1px solid var(--border);
+    background:
+      linear-gradient(180deg, var(--accent-soft) 0%, transparent 65%),
+      var(--bg);
+  }
+
+  .file-stage-head {
+    @apply flex items-start gap-3 px-4 pb-3 pt-4;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .file-stage-glyph {
+    @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-xl leading-none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--accent);
+  }
+
+  .file-stage-eyebrow {
+    @apply text-[0.65rem] font-semibold uppercase leading-none;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+  }
+
+  .file-stage-title {
+    @apply mt-1.5 text-xl font-semibold tracking-tight sm:text-2xl;
+    line-height: 1.2;
+    /* File names run long and often have no spaces to break at. */
+    overflow-wrap: anywhere;
+  }
+
+  .file-stage-ext {
+    font-weight: 500;
+    color: var(--muted);
+  }
+
+  .file-stage-byline {
+    @apply mt-2 text-xs;
+    color: var(--muted);
+  }
+
+  .file-stage-author {
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .file-stage-body {
+    @apply px-4 pb-4 pt-4;
+  }
 }
