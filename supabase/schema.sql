@@ -41,20 +41,14 @@ create table if not exists public.files (
 alter table public.files add column if not exists uploaded_by text;
 
 -- Applied separately so the create-table and the alter paths end up identical.
-do $$
-begin
-  if not exists (
-    select 1
-    from pg_constraint
-    where conrelid = 'public.files'::regclass
-      and conname = 'files_uploaded_by_length'
-  ) then
-    alter table public.files
-      add constraint files_uploaded_by_length
-      check (uploaded_by is null or char_length(uploaded_by) between 1 and 80);
-  end if;
-end;
-$$;
+-- Dropped and recreated rather than added only when missing: Postgres has no
+-- "add constraint if not exists", and a guard that skips an existing constraint
+-- would leave a database stuck on an older definition of it.
+-- trim() matches the rule on folders.name — whitespace alone is not a name.
+alter table public.files drop constraint if exists files_uploaded_by_length;
+alter table public.files
+  add constraint files_uploaded_by_length
+  check (uploaded_by is null or char_length(trim(uploaded_by)) between 1 and 80);
 
 create index if not exists files_folder_idx on public.files (folder_id);
 create index if not exists files_name_idx on public.files (lower(name));
